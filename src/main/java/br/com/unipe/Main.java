@@ -75,5 +75,34 @@ public class Main {
 
         // Mesmo usuário
         analyzerAfinidade.exibirRotaMaiorAfinidade("Ana", "Ana");
+
+        System.out.println("\n==============================");
+        System.out.println("TESTE - SUGESTÃO DE CONEXÕES");
+        System.out.println("==============================");
+
+        Grafo redeSugestoes = new Grafo();
+
+        redeSugestoes.adicionaVertices(
+                "Ana",
+                "Bruno",
+                "Carlos",
+                "Daniela",
+                "Eduardo",
+                "Fernanda"
+        );
+
+        redeSugestoes.addAresta("Ana", "Bruno");
+        redeSugestoes.addAresta("Ana", "Carlos");
+        redeSugestoes.addAresta("Ana", "Daniela");
+
+        redeSugestoes.addAresta("Bruno", "Eduardo");
+        redeSugestoes.addAresta("Carlos", "Eduardo");
+        redeSugestoes.addAresta("Daniela", "Fernanda");
+
+        LinkedInAnalyzer analyzerSugestoes = new LinkedInAnalyzer(redeSugestoes);
+
+        System.out.println(analyzerSugestoes.sugerirConexoes("Ana"));
+
+            
+        }
     }
-}

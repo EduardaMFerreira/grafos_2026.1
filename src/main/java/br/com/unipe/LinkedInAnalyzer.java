@@ -1,9 +1,13 @@
 package br.com.unipe;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LinkedInAnalyzer {
 
@@ -11,6 +15,49 @@ public class LinkedInAnalyzer {
 
     public LinkedInAnalyzer(Grafo rede) {
         this.rede = rede;
+    }
+
+    public Map<String, Integer> sugerirConexoes(String usuario) {
+
+        Vertice usuarioVertice = rede.encontraVertice(usuario).orElse(null);
+
+        if (usuarioVertice == null) {
+            return new LinkedHashMap<>();
+        }
+
+        Set<Vertice> amigos = new HashSet<>(usuarioVertice.getAdjacencias());
+        Map<String, Integer> sugestoes = new HashMap<>();
+
+        for (Vertice amigo : amigos) {
+
+            for (Vertice amigoDoAmigo : amigo.getAdjacencias()) {
+
+                // Não sugerir o próprio usuário
+                if (amigoDoAmigo.equals(usuarioVertice)) {
+                    continue;
+                }
+
+                // Não sugerir quem já é amigo
+                if (amigos.contains(amigoDoAmigo)) {
+                    continue;
+                }
+
+                sugestoes.put(
+                        amigoDoAmigo.getNome(),
+                        sugestoes.getOrDefault(amigoDoAmigo.getNome(), 0) + 1
+                );
+            }
+        }
+
+        return sugestoes.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
     }
 
     public int grauSeparacao(String origem, String destino) {
@@ -39,10 +86,10 @@ public class LinkedInAnalyzer {
             }
         }
 
-        return -1; //sem conexão
+        return -1; // sem conexão
     }
 
-    public ResultadoCaminho rotaMaiorAfinidade(String origem, String destino){
+    public ResultadoCaminho rotaMaiorAfinidade(String origem, String destino) {
         if (origem == null || destino == null) {
             return new ResultadoCaminho();
         }
@@ -60,8 +107,7 @@ public class LinkedInAnalyzer {
         System.out.println("\n===== ROTA DE MAIOR AFINIDADE =====");
 
         if (!resultado.existeCaminho()) {
-            System.out.println("Não existe caminho entre "+ origem + " e " + destino);
-
+            System.out.println("Não existe caminho entre " + origem + " e " + destino);
             return;
         }
 
@@ -74,10 +120,10 @@ public class LinkedInAnalyzer {
     }
 
     private void imprimirCaminho(ResultadoCaminho resultado) {
-        System.out.println("\n Melhor caminho:");
+        System.out.println("\nMelhor caminho:");
 
         System.out.println(
-            String.join(" -> ", resultado.getCaminho())
+                String.join(" -> ", resultado.getCaminho())
         );
     }
 }

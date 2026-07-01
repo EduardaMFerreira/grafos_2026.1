@@ -1,9 +1,11 @@
 package br.com.unipe;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -107,7 +109,7 @@ public class LinkedInAnalyzer {
         System.out.println("\n===== ROTA DE MAIOR AFINIDADE =====");
 
         if (!resultado.existeCaminho()) {
-            System.out.println("Não existe caminho entre " + origem + " e " + destino);
+            System.out.println("Nao existe caminho entre " + origem + " e " + destino);
             return;
         }
 
@@ -125,5 +127,66 @@ public class LinkedInAnalyzer {
         System.out.println(
                 String.join(" -> ", resultado.getCaminho())
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // Missão 5 — Mapear Grupos Isolados (componentes conexos via DFS)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Percorre a rede inteira e agrupa os usuários que estão conectados entre
+     * si, mas totalmente isolados dos outros grupos (componentes conexos).
+     *
+     * @return Uma lista de grupos, onde cada grupo é uma lista com os nomes
+     *         dos usuários daquela sub-rede.
+     */
+    public List<List<String>> mapearGruposIsolados() {
+        List<List<String>> grupos = new ArrayList<>();
+        Set<Vertice> visitados = new HashSet<>();
+
+        for (Vertice vertice : rede.getVertices()) {
+            if (!visitados.contains(vertice)) {
+                List<Vertice> grupoAtual = new ArrayList<>();
+                dfsComponente(vertice, visitados, grupoAtual);
+                grupos.add(grupoAtual.stream().map(Vertice::getNome).toList());
+            }
+        }
+
+        return grupos;
+    }
+
+    /**
+     * DFS recursiva que acumula, em {@code grupoAtual}, todos os vértices
+     * alcançáveis a partir de {@code atual}.
+     */
+    private void dfsComponente(Vertice atual, Set<Vertice> visitados, List<Vertice> grupoAtual) {
+        visitados.add(atual);
+        grupoAtual.add(atual);
+
+        for (Vertice vizinho : atual.getAdjacencias()) {
+            if (!visitados.contains(vizinho)) {
+                dfsComponente(vizinho, visitados, grupoAtual);
+            }
+        }
+
+        // Como o grafo social é não-direcionado, os "adjacentes" (quem chega até
+        // 'atual') também precisam ser visitados para garantir que o componente
+        // seja encontrado independentemente de qual vértice disparou a busca.
+        for (Vertice vizinho : atual.getAdjacentes()) {
+            if (!visitados.contains(vizinho)) {
+                dfsComponente(vizinho, visitados, grupoAtual);
+            }
+        }
+    }
+
+    public void exibirGruposIsolados() {
+        List<List<String>> grupos = mapearGruposIsolados();
+
+        System.out.println("\n===== GRUPOS ISOLADOS (SUB-REDES) =====");
+        System.out.println("Total de grupos encontrados: " + grupos.size());
+
+        for (int i = 0; i < grupos.size(); i++) {
+            System.out.println("Grupo " + (i + 1) + ": " + String.join(", ", grupos.get(i)));
+        }
     }
 }

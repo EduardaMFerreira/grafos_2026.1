@@ -1,108 +1,98 @@
 package br.com.unipe;
 
+import java.util.List;
+import java.util.Map;
 
 public class Main {
+
     public static void main(String[] args) {
-        Grafo grafo = new Grafo(true, true);
 
-        grafo.adicionaVertices("1", "2", "3", "4", "5", "6", "7");
+        // =====================================================================
+        // CENÁRIO DE TESTES — LinkedIn Analyzer
+        // Rede principal: Ana, Bruno, Carlos, Daniela, Eduardo, Fernanda
+        // Grupo isolado 1: Gabriel, Hugo
+        // Grupo isolado 2: Igor, Juliana
+        // =====================================================================
 
-        grafo.addAresta("5", "6", 1);
-        grafo.addAresta("5", "7", 2);
+        Grafo rede = new Grafo(false, true); // não-dirigido, ponderado
 
-        grafo.addAresta("6", "7", 1);
-        grafo.addAresta("7", "6", 1);
+        rede.adicionaVertices(
+                "Ana", "Bruno", "Carlos", "Daniela", "Eduardo", "Fernanda",
+                "Gabriel", "Hugo",
+                "Igor", "Juliana"
+        );
 
-        grafo.addAresta("6", "2", 3);
-        grafo.addAresta("7", "4", 2);
+        // Conexões e afinidades (peso baixo = muita afinidade)
+        rede.addAresta("Ana", "Bruno", 1);
+        rede.addAresta("Ana", "Carlos", 2);
+        rede.addAresta("Ana", "Daniela", 8);
+        rede.addAresta("Bruno", "Eduardo", 1);
+        rede.addAresta("Carlos", "Eduardo", 1);
+        rede.addAresta("Daniela", "Fernanda", 5);
+        rede.addAresta("Eduardo", "Fernanda", 1);
 
-        grafo.addAresta("2", "4", 1);
-        grafo.addAresta("4", "2", 1);
+        // Grupo isolado 1
+        rede.addAresta("Gabriel", "Hugo", 1);
 
-        grafo.addAresta("1", "2", 2);
-        grafo.addAresta("4", "1", 3);
-
-        grafo.addAresta("2", "3", 2);
-        grafo.addAresta("1", "3", 1);
-        grafo.addAresta("4", "3", 4);
-
-        Grafo rede = new Grafo();
-        rede.adicionaVertices("Ana", "Bruno", "Eduardo");
-        rede.addAresta("Ana", "Bruno");
-        rede.addAresta("Bruno", "Eduardo");
+        // Grupo isolado 2
+        rede.addAresta("Igor", "Juliana", 1);
 
         LinkedInAnalyzer analyzer = new LinkedInAnalyzer(rede);
 
-        System.out.println(analyzer.grauSeparacao("Ana", "Eduardo")); // esperado: 2
-        System.out.println(analyzer.grauSeparacao("Ana", "Gabriel")); // esperado: -1
-
-        System.out.println(analyzer.grauSeparacao("Bruno", "Eduardo")); // esperado: 1
-        System.out.println(analyzer.grauSeparacao("Eduardo", "Ana"));   // esperado: 2
-        
-        System.out.println(grafo.greedySearch("1", "5"));
-
-        System.out.println("\n==============================");
-        System.out.println("TESTE - ROTA DE MAIOR AFINIDADE");
+        // ---------------------------------------------------------------
+        // Missão 2 — Sugestão de conexões (amigos de 2º grau)
+        // ---------------------------------------------------------------
+        System.out.println("==============================");
+        System.out.println("MISSAO 2 - SUGESTAO DE CONEXOES");
         System.out.println("==============================");
 
-        // Grafo de rede social (ponderado)
-        Grafo redeAfinidade = new Grafo(false, true);
+        Map<String, Integer> sugestoesAna = analyzer.sugerirConexoes("Ana");
+        System.out.println("Sugestoes para Ana: " + sugestoesAna);
+        // Esperado: Eduardo aparece com 2 amigos em comum (Bruno e Carlos),
+        // já que Daniela é conexão direta e não deve ser sugerida.
 
-        redeAfinidade.adicionaVertices(
-            "Ana",
-            "Bruno",
-            "Carlos",
-            "Eduardo",
-            "Fernanda",
-            "Gabriel"
-        );
-
-        // Afinidades (quanto menor o peso, maior a afinidade)
-        redeAfinidade.addAresta("Ana", "Bruno", 1);
-        redeAfinidade.addAresta("Ana", "Carlos", 4);
-        redeAfinidade.addAresta("Bruno", "Eduardo", 2);
-        redeAfinidade.addAresta("Carlos", "Eduardo", 1);
-        redeAfinidade.addAresta("Eduardo", "Fernanda", 1);
-
-        // Gabriel fica isolado
-        LinkedInAnalyzer analyzerAfinidade = new LinkedInAnalyzer(redeAfinidade);
-
-        // Caminho encomtrado
-        analyzerAfinidade.exibirRotaMaiorAfinidade("Ana", "Fernanda");
-
-        // Sem caminho
-        analyzerAfinidade.exibirRotaMaiorAfinidade("Ana", "Gabriel");
-
-        // Mesmo usuário
-        analyzerAfinidade.exibirRotaMaiorAfinidade("Ana", "Ana");
-
+        // ---------------------------------------------------------------
+        // Missão 3 — Grau de separação
+        // ---------------------------------------------------------------
         System.out.println("\n==============================");
-        System.out.println("TESTE - SUGESTÃO DE CONEXÕES");
+        System.out.println("MISSAO 3 - GRAU DE SEPARACAO");
         System.out.println("==============================");
 
-        Grafo redeSugestoes = new Grafo();
+        System.out.println("Ana -> Bruno: " + analyzer.grauSeparacao("Ana", "Bruno"));       // esperado: 1
+        System.out.println("Ana -> Eduardo: " + analyzer.grauSeparacao("Ana", "Eduardo"));   // esperado: 2
+        System.out.println("Ana -> Fernanda: " + analyzer.grauSeparacao("Ana", "Fernanda")); // esperado: 2 (via Daniela)
+        System.out.println("Ana -> Gabriel: " + analyzer.grauSeparacao("Ana", "Gabriel"));   // esperado: -1 (isolados)
 
-        redeSugestoes.adicionaVertices(
-                "Ana",
-                "Bruno",
-                "Carlos",
-                "Daniela",
-                "Eduardo",
-                "Fernanda"
-        );
+        // ---------------------------------------------------------------
+        // Missão 4 — Rota e custo de maior afinidade (Dijkstra)
+        // ---------------------------------------------------------------
+        System.out.println("\n==============================");
+        System.out.println("MISSAO 4 - ROTA DE MAIOR AFINIDADE");
+        System.out.println("==============================");
 
-        redeSugestoes.addAresta("Ana", "Bruno");
-        redeSugestoes.addAresta("Ana", "Carlos");
-        redeSugestoes.addAresta("Ana", "Daniela");
+        // Demonstra que o caminho com menos "saltos" (Ana -> Daniela -> Fernanda,
+        // custo 8 + 5 = 13) NÃO é o de maior afinidade. O Dijkstra deve encontrar
+        // Ana -> Bruno -> Eduardo -> Fernanda, com custo 1 + 1 + 1 = 3.
+        analyzer.exibirRotaMaiorAfinidade("Ana", "Fernanda");
 
-        redeSugestoes.addAresta("Bruno", "Eduardo");
-        redeSugestoes.addAresta("Carlos", "Eduardo");
-        redeSugestoes.addAresta("Daniela", "Fernanda");
+        // Sem caminho possível (grupos isolados)
+        analyzer.exibirRotaMaiorAfinidade("Ana", "Gabriel");
 
-        LinkedInAnalyzer analyzerSugestoes = new LinkedInAnalyzer(redeSugestoes);
+        // Mesmo usuário como origem e destino
+        analyzer.exibirRotaMaiorAfinidade("Ana", "Ana");
 
-        System.out.println(analyzerSugestoes.sugerirConexoes("Ana"));
+        // ---------------------------------------------------------------
+        // Missão 5 — Mapear grupos isolados (componentes conexos)
+        // ---------------------------------------------------------------
+        System.out.println("\n==============================");
+        System.out.println("MISSAO 5 - GRUPOS ISOLADOS");
+        System.out.println("==============================");
 
-            
-        }
+        analyzer.exibirGruposIsolados();
+        // Esperado: 3 grupos —
+        // [Ana, Bruno, Carlos, Daniela, Eduardo, Fernanda], [Gabriel, Hugo], [Igor, Juliana]
+
+        List<List<String>> grupos = analyzer.mapearGruposIsolados();
+        System.out.println("\nTotal de sub-redes isoladas: " + grupos.size());
     }
+}
